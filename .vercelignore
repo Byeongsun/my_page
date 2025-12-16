@@ -1,0 +1,6 @@
+# Vercel ignore file
+test.html
+이력서.txt
+DEPLOY_GUIDE.md
+.gitignore
+README.md
