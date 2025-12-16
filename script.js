@@ -208,7 +208,7 @@ function initImageAnimation() {
                 const currentSrc = this.src;
                 if (!currentSrc.startsWith('http')) {
                     const baseUrl = window.location.origin;
-                    this.src = baseUrl + '/assets/profile.png';
+                    this.src = baseUrl + '/profile.png';
                     console.log('Retrying with absolute URL:', this.src);
                 }
             }
@@ -230,10 +230,10 @@ document.addEventListener('DOMContentLoaded', function() {
         let correctPath;
         if (isFileProtocol) {
             // 로컬 파일 열기 시: 상대 경로
-            correctPath = 'assets/profile.png';
+            correctPath = 'profile.png';
         } else {
             // 웹 서버/배포 환경: 현재 origin 기반 절대 경로 (www 포함/미포함 모두 처리)
-            correctPath = baseUrl + '/assets/profile.png';
+            correctPath = baseUrl + '/profile.png';
         }
         
         // 항상 올바른 경로로 설정 (현재 origin 사용)
@@ -251,10 +251,10 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 여러 경로로 재시도
             const retryPaths = [
-                baseUrl + '/assets/profile.png',
-                '/assets/profile.png',
-                'assets/profile.png',
-                './assets/profile.png'
+                baseUrl + '/profile.png',
+                '/profile.png',
+                'profile.png',
+                './profile.png'
             ];
             
             let retryIndex = 0;
