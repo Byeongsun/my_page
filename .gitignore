@@ -30,4 +30,5 @@ Thumbs.db
 .vercel
 
 # Personal files (not to be uploaded to GitHub)
+# Note: assets/profile.png is intentionally tracked for deployment
 이력서.txt
