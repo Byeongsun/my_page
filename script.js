@@ -223,27 +223,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // 프로필 이미지 특별 처리 - 모든 환경에서 올바른 경로 사용
     const profileImgs = document.querySelectorAll('.profile-img');
     profileImgs.forEach(profileImg => {
-        const currentSrc = profileImg.getAttribute('src') || profileImg.src;
         const isFileProtocol = window.location.protocol === 'file:';
         const baseUrl = window.location.origin;
         
-        // 파일 프로토콜(file://)인 경우 상대 경로 사용, 그 외에는 절대 경로 사용
+        // 파일 프로토콜(file://)인 경우 상대 경로 사용, 그 외에는 현재 origin 기반 절대 경로 사용
         let correctPath;
         if (isFileProtocol) {
             // 로컬 파일 열기 시: 상대 경로
             correctPath = 'assets/profile.png';
         } else {
-            // 웹 서버/배포 환경: 절대 경로
+            // 웹 서버/배포 환경: 현재 origin 기반 절대 경로 (www 포함/미포함 모두 처리)
             correctPath = baseUrl + '/assets/profile.png';
         }
         
-        // 경로가 올바르지 않으면 수정
-        if (profileImg.src !== correctPath && !profileImg.src.includes('profile.png')) {
-            profileImg.src = correctPath;
-            console.log('Setting profile image path:', correctPath);
-            console.log('Protocol:', window.location.protocol);
-            console.log('Origin:', window.location.origin);
-        }
+        // 항상 올바른 경로로 설정 (현재 origin 사용)
+        profileImg.src = correctPath;
+        console.log('Setting profile image path:', correctPath);
+        console.log('Protocol:', window.location.protocol);
+        console.log('Origin:', window.location.origin);
+        console.log('Full URL:', window.location.href);
         
         // 이미지 로드 실패 시 재시도
         profileImg.addEventListener('error', function() {
