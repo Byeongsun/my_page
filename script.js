@@ -216,36 +216,35 @@ function initImageAnimation() {
     });
 }
 
-// 페이지 로드 시 이미지 경로 자동 설정
+// 페이지 로드 시 이미지 로드 확인 및 강제 재로드
 document.addEventListener('DOMContentLoaded', function() {
     initImageAnimation();
     
-    // 프로필 이미지 경로 자동 설정 (로컬/배포 환경 모두 지원)
-    const profileImg = document.querySelector('.profile-img');
-    if (profileImg) {
-        // 현재 이미지 src 확인
-        const currentSrc = profileImg.getAttribute('src');
-        const isLocal = window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    // 프로필 이미지 특별 처리 - 모든 환경에서 절대 경로 사용
+    const profileImgs = document.querySelectorAll('.profile-img');
+    profileImgs.forEach(profileImg => {
+        // 절대 경로로 강제 설정
+        const baseUrl = window.location.origin;
+        const absolutePath = baseUrl + '/assets/profile.png';
         
-        // 배포 환경에서는 절대 경로 사용, 로컬에서는 상대 경로 사용
-        if (!isLocal && currentSrc && !currentSrc.startsWith('http') && !currentSrc.startsWith('/')) {
-            profileImg.src = '/' + currentSrc;
-        } else if (isLocal && currentSrc && currentSrc.startsWith('/')) {
-            profileImg.src = currentSrc.substring(1); // 앞의 / 제거
+        // 현재 경로가 절대 경로가 아니면 설정
+        if (!profileImg.src.startsWith('http')) {
+            profileImg.src = absolutePath;
+            console.log('Setting profile image to absolute path:', absolutePath);
         }
         
         // 이미지 로드 실패 시 재시도
         profileImg.addEventListener('error', function() {
             console.error('Profile image failed to load:', this.src);
-            const baseUrl = window.location.origin;
-            const newSrc = baseUrl + '/assets/profile.png';
-            console.log('Retrying with absolute URL:', newSrc);
-            this.src = newSrc;
+            // 캐시 방지를 위한 타임스탬프 추가
+            const retrySrc = baseUrl + '/assets/profile.png?t=' + Date.now();
+            console.log('Retrying with cache-busting:', retrySrc);
+            this.src = retrySrc;
         });
         
         // 이미지 로드 성공 확인
         profileImg.addEventListener('load', function() {
             console.log('Profile image loaded successfully:', this.src);
         });
-    }
+    });
 });
