@@ -208,7 +208,7 @@ function initImageAnimation() {
                 const currentSrc = this.src;
                 if (!currentSrc.startsWith('http')) {
                     const baseUrl = window.location.origin;
-                    this.src = baseUrl + '/profile.png';
+                    this.src = baseUrl + '/assets/profile.png';
                     console.log('Retrying with absolute URL:', this.src);
                 }
             }
@@ -223,59 +223,78 @@ document.addEventListener('DOMContentLoaded', function() {
     // 프로필 이미지 특별 처리 - 모든 환경에서 올바른 경로 사용
     const profileImgs = document.querySelectorAll('.profile-img');
     profileImgs.forEach(profileImg => {
+        const currentSrc = profileImg.getAttribute('src') || profileImg.src;
         const isFileProtocol = window.location.protocol === 'file:';
         const baseUrl = window.location.origin;
         
-        // 파일 프로토콜(file://)인 경우 상대 경로 사용, 그 외에는 현재 origin 기반 절대 경로 사용
+        // 파일 프로토콜(file://)인 경우 상대 경로 사용, 그 외에는 절대 경로 사용
         let correctPath;
         if (isFileProtocol) {
             // 로컬 파일 열기 시: 상대 경로
-            correctPath = 'profile.png';
+            correctPath = 'assets/profile.png';
         } else {
-            // 웹 서버/배포 환경: 현재 origin 기반 절대 경로 (www 포함/미포함 모두 처리)
-            correctPath = baseUrl + '/profile.png';
+            // 웹 서버/배포 환경: 절대 경로
+            correctPath = baseUrl + '/assets/profile.png';
         }
         
-        // 항상 올바른 경로로 설정 (현재 origin 사용)
-        profileImg.src = correctPath;
-        console.log('Setting profile image path:', correctPath);
-        console.log('Protocol:', window.location.protocol);
-        console.log('Origin:', window.location.origin);
-        console.log('Full URL:', window.location.href);
+        // 경로가 올바르지 않으면 수정
+        if (profileImg.src !== correctPath && !profileImg.src.includes('profile.png')) {
+            profileImg.src = correctPath;
+            console.log('Setting profile image path:', correctPath);
+            console.log('Protocol:', window.location.protocol);
+            console.log('Origin:', window.location.origin);
+        }
         
-        // 이미지 로드 실패 시 재시도
+        // 이미지 로드 실패 시 재시도 로직
+        const retryPaths = [
+            baseUrl + '/assets/profile.png',
+            '/assets/profile.png',
+            'assets/profile.png',
+            './assets/profile.png'
+        ];
+        
+        let retryIndex = 0;
+        let isRetrying = false;
+        
+        const tryNextPath = () => {
+            if (retryIndex < retryPaths.length && !isRetrying) {
+                isRetrying = true;
+                const retrySrc = retryPaths[retryIndex] + '?t=' + Date.now();
+                console.log(`Retrying with path ${retryIndex + 1}/${retryPaths.length}:`, retrySrc);
+                profileImg.src = retrySrc;
+                retryIndex++;
+                
+                // 다음 시도를 위해 플래그 리셋 (이미지 로드 성공/실패 후)
+                setTimeout(() => {
+                    isRetrying = false;
+                }, 500);
+            } else if (retryIndex >= retryPaths.length) {
+                console.error('All retry paths failed. Tried:', retryPaths);
+            }
+        };
+        
         profileImg.addEventListener('error', function() {
             console.error('Profile image failed to load:', this.src);
             console.error('Current URL:', window.location.href);
             console.error('Origin:', window.location.origin);
             
-            // 여러 경로로 재시도
-            const retryPaths = [
-                baseUrl + '/profile.png',
-                '/profile.png',
-                'profile.png',
-                './profile.png'
-            ];
-            
-            let retryIndex = 0;
-            const tryNextPath = () => {
-                if (retryIndex < retryPaths.length) {
-                    const retrySrc = retryPaths[retryIndex] + '?t=' + Date.now();
-                    console.log('Retrying with path:', retrySrc);
-                    this.src = retrySrc;
-                    retryIndex++;
-                } else {
-                    console.error('All retry paths failed');
-                }
-            };
-            
-            // 첫 번째 재시도
-            setTimeout(tryNextPath, 100);
+            // 다음 경로 시도 (이미지가 로드 실패할 때마다 호출됨)
+            if (retryIndex < retryPaths.length) {
+                setTimeout(tryNextPath, 100);
+            } else {
+                console.error('All retry paths exhausted');
+            }
         });
         
-        // 이미지 로드 성공 확인
+        // 이미지 로드 성공 확인 및 재시도 인덱스 리셋
         profileImg.addEventListener('load', function() {
-            console.log('Profile image loaded successfully:', this.src);
+            if (retryIndex > 0) {
+                console.log('Profile image loaded successfully after retry:', this.src);
+            } else {
+                console.log('Profile image loaded successfully:', this.src);
+            }
+            retryIndex = 0; // 성공 시 리셋하여 다음 실패 시 다시 시도 가능하도록
+            isRetrying = false;
         });
     });
 });
