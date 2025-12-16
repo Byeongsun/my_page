@@ -188,7 +188,7 @@ window.addEventListener('scroll', function() {
 });
 
 /**
- * 이미지 로드 시 애니메이션 (이미지 추가 시 사용)
+ * 이미지 로드 시 애니메이션 및 오류 처리
  */
 function initImageAnimation() {
     const images = document.querySelectorAll('img');
@@ -196,6 +196,40 @@ function initImageAnimation() {
     images.forEach(img => {
         img.addEventListener('load', function() {
             this.classList.add('loaded');
+            console.log('Image loaded:', this.src);
+        });
+        
+        img.addEventListener('error', function() {
+            console.error('Image failed to load:', this.src);
+            // 이미지 로드 실패 시 placeholder 표시
+            if (this.src.includes('profile.png')) {
+                console.warn('Profile image failed to load. Checking alternative paths...');
+                // 절대 경로로 재시도
+                const currentSrc = this.src;
+                if (!currentSrc.startsWith('http')) {
+                    const baseUrl = window.location.origin;
+                    this.src = baseUrl + '/assets/profile.png';
+                    console.log('Retrying with absolute URL:', this.src);
+                }
+            }
         });
     });
 }
+
+// 페이지 로드 시 이미지 로드 확인
+document.addEventListener('DOMContentLoaded', function() {
+    initImageAnimation();
+    
+    // 프로필 이미지 특별 처리
+    const profileImg = document.querySelector('.profile-img');
+    if (profileImg) {
+        // 이미지 로드 상태 확인
+        if (!profileImg.complete || profileImg.naturalHeight === 0) {
+            console.log('Profile image not loaded, checking path...');
+            const currentSrc = profileImg.src;
+            console.log('Current image source:', currentSrc);
+            console.log('Window location:', window.location.href);
+            console.log('Base URL:', window.location.origin);
+        }
+    }
+});
